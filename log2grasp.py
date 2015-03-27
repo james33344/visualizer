@@ -38,8 +38,8 @@ for line in lines :
 	elif inst == 'switch' :
 		out_task, in_task, tick, tick_reload, out_minitick, in_minitick = args.split(' ')
 		
-		out_time = (float(tick) + (float(tick_reload) - float (out_minitick)) / float (tick_reload)) / 100 * 1000;
-		in_time  = (float (tick) + (float(tick_reload) - float(in_minitick))  / float(tick_reload)) / 100 * 1000;
+		out_time = (float(tick) + (float(tick_reload) - float (out_minitick)) / float (tick_reload)) / 100 * 1000 * 10;
+		in_time  = (float (tick) + (float(tick_reload) - float(in_minitick))  / float(tick_reload)) / 100 * 1000 * 10;
 		
 		event = {}
 		event['type'] = 'task out'
@@ -52,6 +52,8 @@ for line in lines :
 		event['type'] = 'task in'
 		event['task'] = in_task
 		event['time'] = in_time
+		event['prev'] = out_task
+		event['prev_t'] = out_time
 		events.append(event);
 
 		last_task = in_task
@@ -200,6 +202,8 @@ for event in events :
 	elif event['type'] == 'task in' :
 		grasp.write('plot %f jobResumed job%s.1\n' %
 					(event['time'], event['task']))
+		grasp.write('plot %f line task%s task%s -end %f -color red -stem dotted -arrow both\n' %
+					(event['prev_t'], event['prev'], event['task'], event['time']))
 
 	elif event['type'] == 'mutex give' :
 		grasp.write('plot %f jobReleasedMutex job%s.1 mutex%s\n' % (event['time'], event['task'], event['target']));
